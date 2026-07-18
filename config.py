@@ -13,12 +13,13 @@ class Config:
         if SQLALCHEMY_DATABASE_URI.startswith('mysql://'):
             SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('mysql://', 'mysql+pymysql://', 1)
             
-        # If using TiDB/PlanetScale, make sure the SSL cert path is absolute
-        if 'isrgrootx1.pem' in SQLALCHEMY_DATABASE_URI:
+        # If using TiDB/PlanetScale, forcefully fix the SSL cert path
+        if 'ssl_ca=' in SQLALCHEMY_DATABASE_URI:
+            import re
             cert_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'isrgrootx1.pem')
-            # Replace backslashes with forward slashes for URL compatibility
             cert_path = cert_path.replace('\\', '/')
-            SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('ssl_ca=isrgrootx1.pem', f'ssl_ca={cert_path}')
+            # This regex replaces whatever value is after ssl_ca= (up to the next & or end of string)
+            SQLALCHEMY_DATABASE_URI = re.sub(r'ssl_ca=[^&]+', f'ssl_ca={cert_path}', SQLALCHEMY_DATABASE_URI)
     else:
         SQLALCHEMY_DATABASE_URI = 'sqlite:///eric_portfolio_fallback.db'
         
