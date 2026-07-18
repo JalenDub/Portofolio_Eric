@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ profil.nama if profil else 'Eric Portfolio' }} | Full-Stack Developer</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/eric.css', v=4) }}">
+</head>
+<body class="yoru-mode">
+
+    <!-- Yoru Blindside Flash Overlay -->
+    <div id="yoruFlash" class="yoru-flash-overlay">
+        <div class="blindside-sphere"></div>
+        <div class="blindside-flash-screen"></div>
+        <div class="blindside-tear blindside-tear-1"></div>
+        <div class="blindside-tear blindside-tear-2"></div>
+    </div>
+
+    <div id="preloader" class="preloader">
+        <div class="preloader-logo glitch">
+            <span class="pl-slash">//</span> PORTFOLIO
+        </div>
+        <div class="preloader-bar"></div>
+        <div class="preloader-status">INITIALIZING SYSTEM...</div>
+    </div>
+
+    <canvas id="particleCanvas"></canvas>
+
+    <div id="cursorGlow" class="cursor-glow"></div>
+    <div id="cursorDot" class="cursor-glow-dot"></div>
+
+    <div id="pageContent" class="page-content">
+
+        <div class="top-accent-bar"></div>
+
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="#" class="nav-logo">
+                    <span class="v-logo">//</span> PORTFOLIO
+                </a>
+                <ul class="nav-menu">
+                    <li><a href="#profil" class="nav-link">// PROFIL</a></li>
+                    <li><a href="#skills" class="nav-link">// SKILLS</a></li>
+                    <li><a href="#pengalaman" class="nav-link">// PENGALAMAN</a></li>
+                    <li><a href="#proyek" class="nav-link">// PROYEK</a></li>
+                    <li><a href="#kontak" class="nav-link">// KONTAK</a></li>
+                </ul>
+                <div class="nav-cta">
+                    {% if session.get('admin_logged_in') %}
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sharp">DASHBOARD</a>
+                    {% else %}
+                        <a href="{{ url_for('utama.login') }}" class="btn btn-primary btn-sharp btn-glow">LOGIN</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+
+        <header class="hero-section">
+            <div class="hero-bg-text">AGENT</div>
+            <div class="container hero-container">
+                <!-- Left Column: Text Content -->
+                <div class="hero-left">
+                    <div class="hero-quote reveal reveal-up">
+                        <div class="quote-avatar">
+                            {% if profil and profil.foto_url %}
+                                <img src="{{ profil.foto_url }}" alt="Avatar" class="quote-avatar-img">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/profile_new.jpg') }}" alt="Avatar" class="quote-avatar-img">
+                            {% endif %}
+                        </div>
+                        <span class="quote-text">"Code is poetry, deploy is art"</span>
+                    </div>
+
+                    <h1 class="hero-title reveal reveal-up" style="transition-delay: 0.1s;">
+                        <span class="hero-greeting">Hi I'm</span>
+                        {% if profil and profil.nama %}
+                            {% set parts = profil.nama.split(' ') %}
+                            <span class="hero-name-line"><span class="first-name">{{ parts[0] }}</span> <span class="highlight-text">{{ parts[1:]|join(' ') if parts|length > 1 else '' }}</span></span>
+                        {% else %}
+                            <span class="hero-name-line"><span class="first-name">Eric</span> <span class="highlight-text">Christian</span></span>
+                        {% endif %}
+                    </h1>
+
+                    <p class="hero-subtitle reveal reveal-up" style="transition-delay: 0.2s;">
+                        Full-Stack Web Developer crafting high-performance user experiences with modern systems.
+                    </p>
+
+                    <div class="hero-actions reveal reveal-up" style="transition-delay: 0.3s;">
+                        <a href="#kontak" class="btn btn-primary btn-sharp btn-large btn-glow">REKRUT SAYA</a>
+                        <a href="#proyek" class="btn btn-outline btn-sharp btn-large btn-glow">LIHAT PROYEK</a>
+                    </div>
+                </div>
+
+                <!-- Right Column: Holographic Photo Card -->
+                <div class="hero-right reveal reveal-scale" style="transition-delay: 0.15s;">
+                    <div class="holo-card float-anim">
+                        <div class="holo-glow"></div>
+                        <div class="holo-card-inner">
+                            <div class="holo-name-overlay">
+                                {% if profil and profil.nama %}
+                                    {{ profil.nama.split(' ')[0] }}
+                                {% else %}
+                                    Eric
+                                {% endif %}
+                            </div>
+                            <div class="holo-photo">
+                                {% if profil and profil.foto_url %}
+                                    <img src="{{ profil.foto_url }}" alt="Foto Profil" class="agent-portrait">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='img/profile_new.jpg') }}" alt="Foto Profil" class="agent-portrait">
+                                {% endif %}
+                            </div>
+                            <div class="holo-card-footer">
+                                <div class="holo-handle">
+                                    <span class="handle-name">@{{ (profil.nama if profil and profil.nama else 'EricChristian')|lower|replace(' ', '') }}</span>
+                                    <span class="handle-status"><span class="status-dot"></span> Online</span>
+                                </div>
+                                <a href="#kontak" class="holo-contact-btn">Contact Me</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="scroll-down">// SCROLL TO EXPLORE</div>
+        </header>
+
+        <section id="profil" class="section profil-section bg-dark grid-bg">
+            <div class="container">
+                <div class="section-header reveal reveal-left">
+                    <span class="section-num">01/</span>
+                    <h2 class="section-title">BIODATA AGENT</h2>
+                </div>
+                
+                <div class="profil-grid">
+                    <div class="profil-bio reveal reveal-up">
+                        <div class="dec-box glow-card shimmer-hover">
+                            <span class="dec-title">// DOSSIER</span>
+                            <p class="bio-text">
+                                {% if profil %}
+                                    {{ profil.bio }}
+                                {% else %}
+                                    Selamat datang di portofolio saya! Saya adalah seorang Full-Stack Developer. 
+                                    Silakan login ke dashboard admin untuk memperbarui biodata, mengunggah foto profil, 
+                                    menambahkan proyek terbaik Anda, serta mengelola data skill maupun pengalaman kerja.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="profil-details reveal reveal-right">
+                        <div class="dec-box glow-card shimmer-hover">
+                            <span class="dec-title">// DETAILS</span>
+                            <ul class="details-list">
+                                <li><span class="label">NAMA</span> <span class="val">{{ profil.nama if profil else 'Administrator' }}</span></li>
+                                <li><span class="label">ROLE</span> <span class="val">FULL-STACK DEVELOPER</span></li>
+                                <li><span class="label">EMAIL</span> <span class="val">{{ profil.email if profil else 'admin@domain.com' }}</span></li>
+                                <li><span class="label">GITHUB</span> <span class="val"><a href="{{ profil.github_url if profil else '#' }}" target="_blank">{{ profil.github_url.split('/')[-1] if profil and profil.github_url else 'github.com' }}</a></span></li>
+                                <li><span class="label">LINKEDIN</span> <span class="val"><a href="{{ profil.linkedin_url if profil else '#' }}" target="_blank">{{ profil.linkedin_url.split('/')[-1] if profil and profil.linkedin_url else 'linkedin.com' }}</a></span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="yoru-rift-line"></div>
+        </section>
+
+        <section id="skills" class="section skills-section bg-darker grid-bg">
+            <div class="container">
+                <div class="section-header reveal reveal-left">
+                    <span class="section-num">02/</span>
+                    <h2 class="section-title">ARSENAL & KEAHLIAN</h2>
+                </div>
+                
+                {% if skills_by_category %}
+                    <div class="skills-grid stagger-children">
+                        {% for kategori, list_skill in skills_by_category.items() %}
+                            <div class="skills-card glow-card shimmer-hover reveal reveal-up" style="--stagger-index: {{ loop.index0 }};">
+                                <h3 class="card-category-title">// {{ kategori.upper() }}</h3>
+                                <div class="skills-list">
+                                    {% for s in list_skill %}
+                                        <div class="skill-item">
+                                            <div class="skill-info">
+                                                <span class="skill-name">{{ s.nama_skill }}</span>
+                                                <span class="skill-val counter-value" data-target="{{ s.persentase }}">0%</span>
+                                            </div>
+                                            <div class="progress-bar-container">
+                                                <div class="progress-bar" data-width="{{ s.persentase }}%"></div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-data-msg reveal reveal-up">
+                        <p>// Arsenal keahlian kosong. Silakan tambahkan skill melalui panel admin.</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="yoru-rift-line"></div>
+        </section>
+
+        <section id="pengalaman" class="section pengalaman-section bg-dark grid-bg">
+            <div class="container">
+                <div class="section-header reveal reveal-left">
+                    <span class="section-num">03/</span>
+                    <h2 class="section-title">RIWAYAT MISI</h2>
+                </div>
+                
+                {% if pengalaman %}
+                    <div class="timeline stagger-children">
+                        {% for p in pengalaman %}
+                            <div class="timeline-item reveal reveal-up" style="--stagger-index: {{ loop.index0 }};">
+                                <div class="timeline-meta">
+                                    <span class="timeline-date">{{ p.tanggal_mulai.strftime('%b %Y') }} - {{ p.tanggal_selesai.strftime('%b %Y') if p.tanggal_selesai else 'SEKARANG' }}</span>
+                                    <span class="timeline-company">{{ p.perusahaan }}</span>
+                                </div>
+                                <div class="timeline-content glow-card shimmer-hover">
+                                    <h3 class="timeline-position">// {{ p.posisi.upper() }}</h3>
+                                    <p class="timeline-desc">{{ p.deskripsi }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-data-msg reveal reveal-up">
+                        <p>// Riwayat misi belum tersedia. Silakan isi pengalaman kerja Anda di panel admin.</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="yoru-rift-line"></div>
+        </section>
+
+        <section id="proyek" class="section proyek-section bg-darker grid-bg">
+            <div class="container">
+                <div class="section-header reveal reveal-left">
+                    <span class="section-num">04/</span>
+                    <h2 class="section-title">KONTRAK PROYEK</h2>
+                </div>
+                
+                {% if proyek %}
+                    <div class="proyek-grid stagger-children">
+                        {% for pr in proyek %}
+                            <article class="proyek-card glow-card shimmer-hover reveal reveal-up" style="--stagger-index: {{ loop.index0 }};">
+                                <div class="proyek-image-container">
+                                    {% if pr.foto_url %}
+                                        <img src="{{ pr.foto_url }}" alt="{{ pr.judul }}" class="proyek-img">
+                                    {% else %}
+                                        <div class="proyek-img-placeholder">
+                                            <span>// PROYEK SCREENSHOT</span>
+                                        </div>
+                                    {% endif %}
+                                    <div class="proyek-overlay">
+                                        <div class="proyek-links">
+                                            {% if pr.link_proyek %}
+                                                <a href="{{ pr.link_proyek }}" target="_blank" class="btn-circle" title="Live Preview">🔗</a>
+                                            {% endif %}
+                                            {% if pr.link_github %}
+                                                <a href="{{ pr.link_github }}" target="_blank" class="btn-circle" title="Source Code">💻</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="proyek-info">
+                                    <div class="proyek-tech">
+                                        {% if pr.teknologi %}
+                                            {% for tech in pr.teknologi.split(',') %}
+                                                <span class="tech-tag">{{ tech.strip() }}</span>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                    <h3 class="proyek-title">{{ pr.judul }}</h3>
+                                    <p class="proyek-desc">{{ pr.deskripsi }}</p>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-data-msg reveal reveal-up">
+                        <p>// Kontrak proyek belum ditambahkan. Silakan upload proyek baru di admin dashboard.</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="yoru-rift-line"></div>
+        </section>
+
+        <section id="kontak" class="section kontak-section bg-dark grid-bg">
+            <div class="container">
+                <div class="section-header reveal reveal-left">
+                    <span class="section-num">05/</span>
+                    <h2 class="section-title">SALURAN KOMUNIKASI</h2>
+                </div>
+                
+                <div class="kontak-grid">
+                    <div class="kontak-info reveal reveal-left">
+                        <h3 class="kontak-subtitle">// TRANSMISI ENKRIPSI</h3>
+                        <p class="kontak-text">
+                            Kirimkan transmisi pesan Anda melalui form ini. Pesan akan dienkripsi dan langsung diteruskan ke inbox saya via Resend API.
+                        </p>
+                        <div class="contact-details">
+                            <div class="detail-item">
+                                <span class="detail-icon">// EMAIL</span>
+                                <span class="detail-val">{{ profil.email if profil else 'admin@domain.com' }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-icon">// LOKASI</span>
+                                <span class="detail-val">INDONESIA, EARTH</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="kontak-form-container reveal reveal-right">
+                        <form id="contactForm" class="eric-form" method="POST" action="/kontak">
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="nama">NAMA AGEN</label>
+                                    <input type="text" id="nama" name="nama" placeholder="Masukkan nama Anda" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">ALAMAT EMAIL</label>
+                                    <input type="email" id="email" name="email" placeholder="nama@domain.com" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="subjek">SUBJEK TRANSMISI</label>
+                                <input type="text" id="subjek" name="subjek" placeholder="Topik pesan..." required>
+                            </div>
+                            <div class="form-group">
+                                <label for="pesan">ISI PESAN</label>
+                                <textarea id="pesan" name="pesan" rows="5" placeholder="Tuliskan detail pesan Anda disini..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sharp btn-block btn-glow">KIRIM TRANSMISI</button>
+                        </form>
+                        
+                        <div id="toast" class="toast hidden">
+                            <div class="toast-content">
+                                <span class="toast-icon">//</span>
+                                <span id="toastMessage" class="toast-text">Mengirim pesan...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container footer-container">
+                <p>&copy; 2026 {{ profil.nama if profil else 'Eric Portfolio' }}. All rights reserved.</p>
+            </div>
+        </footer>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

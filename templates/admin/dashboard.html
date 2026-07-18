@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin | Eric Portfolio</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/eric.css', v=4) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css', v=2) }}">
+</head>
+<body class="yoru-mode">
+
+    <div class="top-accent-bar"></div>
+
+    <div class="admin-wrapper">
+        
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <span class="v-logo">//</span> HQ COMMAND
+                <p class="sidebar-subtitle">LOGGED IN: {{ session.get('admin_username') }}</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-tab-btn {% if active_tab == 'profil' %}active{% endif %}" data-tab="profil">// PROFIL</button>
+                <button class="nav-tab-btn {% if active_tab == 'skills' %}active{% endif %}" data-tab="skills">// SKILLS</button>
+                <button class="nav-tab-btn {% if active_tab == 'pengalaman' %}active{% endif %}" data-tab="pengalaman">// PENGALAMAN</button>
+                <button class="nav-tab-btn {% if active_tab == 'proyek' %}active{% endif %}" data-tab="proyek">// PROYEK</button>
+                <button class="nav-tab-btn {% if active_tab == 'pesan' %}active{% endif %}" data-tab="pesan">
+                    // PESAN
+                    {% if pesan %}
+                        <span class="badge">{{ pesan|length }}</span>
+                    {% endif %}
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="{{ url_for('utama.index') }}" class="btn btn-secondary btn-sharp btn-block" target="_blank">LIHAT LIVE SITE</a>
+                <a href="{{ url_for('utama.logout') }}" class="btn btn-outline btn-sharp btn-block" style="margin-top: 10px;">LOGOUT</a>
+            </div>
+        </aside>
+
+        <main class="admin-content">
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" style="margin-bottom: 25px; clip-path: none; border-radius: 0;">
+                            <strong>//</strong> {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <section id="tab-profil" class="tab-content {% if active_tab == 'profil' %}active{% endif %}">
+                <div class="tab-header">
+                    <h2 class="tab-title">PENGATURAN PROFIL</h2>
+                    <p class="tab-subtitle">Kelola informasi biodata utama agen</p>
+                </div>
+                
+                <div class="admin-card">
+                    <form method="POST" action="{{ url_for('admin.save_profil') }}" enctype="multipart/form-data" class="eric-form">
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label for="nama">NAMA LENGKAP</label>
+                                <input type="text" id="nama" name="nama" value="{{ profil.nama if profil else '' }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">EMAIL AGEN</label>
+                                <input type="email" id="email" name="email" value="{{ profil.email if profil else '' }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bio">BIODATA / DOSSIER</label>
+                            <textarea id="bio" name="bio" rows="6" required>{{ profil.bio if profil else '' }}</textarea>
+                        </div>
+                        
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label for="github_url">GITHUB URL</label>
+                                <input type="url" id="github_url" name="github_url" value="{{ profil.github_url if profil else '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="linkedin_url">LINKEDIN URL</label>
+                                <input type="url" id="linkedin_url" name="linkedin_url" value="{{ profil.linkedin_url if profil else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="form-group file-upload-group">
+                            <label for="foto">FOTO PROFIL (UPLOAD CLOUDINARY)</label>
+                            <div class="file-upload-wrapper">
+                                <input type="file" id="foto" name="foto" accept="image/*">
+                                <p class="file-upload-help">Pilih file gambar jika ingin memperbarui foto profil.</p>
+                            </div>
+                            {% if profil and profil.foto_url %}
+                                <div class="current-image-preview">
+                                    <p>Foto saat ini:</p>
+                                    <img src="{{ profil.foto_url }}" alt="Preview Profil" class="img-preview">
+                                </div>
+                            {% else %}
+                                <div class="current-image-preview">
+                                    <p>Foto saat ini:</p>
+                                    <img src="{{ url_for('static', filename='img/profile.jpg') }}" alt="Preview Profil" class="img-preview">
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-sharp">SIMPAN PERUBAHAN</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="tab-skills" class="tab-content {% if active_tab == 'skills' %}active{% endif %}">
+                <div class="tab-header">
+                    <h2 class="tab-title">ARSENAL SKILLS</h2>
+                    <p class="tab-subtitle">Kelola daftar kemampuan teknis agen</p>
+                </div>
+                
+                <div class="grid-admin-two">
+                    <div class="admin-card">
+                        <h3 class="card-title">// TAMBAH KEAHLIAN BARU</h3>
+                        <form method="POST" action="{{ url_for('admin.add_skill') }}" class="eric-form">
+                            <div class="form-group">
+                                <label for="nama_skill">NAMA KEAHLIAN</label>
+                                <input type="text" id="nama_skill" name="nama_skill" placeholder="Contoh: Python" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="kategori">KATEGORI</label>
+                                <select id="kategori" name="kategori" required class="val-select">
+                                    <option value="Frontend">Frontend</option>
+                                    <option value="Backend">Backend</option>
+                                    <option value="Tools">Tools / DevOps</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="persentase">PENGUASAAN (%)</label>
+                                <input type="number" id="persentase" name="persentase" min="0" max="100" placeholder="0 - 100" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sharp">TAMBAH KEAHLIAN</button>
+                        </form>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <h3 class="card-title">// DAFTAR KEAHLIAN</h3>
+                        <div class="table-container">
+                            <table class="val-table">
+                                <thead>
+                                    <tr>
+                                        <th>KEAHLIAN</th>
+                                        <th>KATEGORI</th>
+                                        <th>PENGUASAAN</th>
+                                        <th>AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if skills %}
+                                        {% for s in skills %}
+                                            <tr>
+                                                <td class="bold-text">{{ s.nama_skill }}</td>
+                                                <td>{{ s.kategori }}</td>
+                                                <td class="text-red">{{ s.persentase }}%</td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="btn-action edit-skill-btn" 
+                                                                data-id="{{ s.id }}" 
+                                                                data-nama="{{ s.nama_skill }}"
+                                                                data-kategori="{{ s.kategori }}"
+                                                                data-persentase="{{ s.persentase }}">EDIT</button>
+                                                        <form method="POST" action="{{ url_for('admin.delete_skill', id=s.id) }}" style="display:inline;" onsubmit="return confirm('Hapus skill ini?')">
+                                                            <button type="submit" class="btn-action btn-delete">HAPUS</button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center">// DATA KOSONG</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-pengalaman" class="tab-content {% if active_tab == 'pengalaman' %}active{% endif %}">
+                <div class="tab-header">
+                    <h2 class="tab-title">RIWAYAT MISI</h2>
+                    <p class="tab-subtitle">Kelola riwayat pengalaman karir profesional</p>
+                </div>
+                
+                <div class="grid-admin-two">
+                    <div class="admin-card">
+                        <h3 class="card-title">// TAMBAH RIWAYAT BARU</h3>
+                        <form method="POST" action="{{ url_for('admin.add_pengalaman') }}" class="eric-form">
+                            <div class="form-group">
+                                <label for="perusahaan">PERUSAHAAN</label>
+                                <input type="text" id="perusahaan" name="perusahaan" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="posisi">POSISI / ROLE</label>
+                                <input type="text" id="posisi" name="posisi" required>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label for="tanggal_mulai">TANGGAL MULAI</label>
+                                    <input type="date" id="tanggal_mulai" name="tanggal_mulai" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="tanggal_selesai">TANGGAL SELESAI</label>
+                                    <input type="date" id="tanggal_selesai" name="tanggal_selesai">
+                                    <p class="field-help">*Kosongkan jika masih bekerja disini</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="deskripsi_pengalaman">DESKRIPSI TUGAS</label>
+                                <textarea id="deskripsi_pengalaman" name="deskripsi" rows="4"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sharp">TAMBAH RIWAYAT</button>
+                        </form>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <h3 class="card-title">// DAFTAR MISI</h3>
+                        <div class="table-container">
+                            <table class="val-table">
+                                <thead>
+                                    <tr>
+                                        <th>PERUSAHAAN</th>
+                                        <th>POSISI</th>
+                                        <th>PERIODE</th>
+                                        <th>AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if pengalaman %}
+                                        {% for p in pengalaman %}
+                                            <tr>
+                                                <td class="bold-text">{{ p.perusahaan }}</td>
+                                                <td>{{ p.posisi }}</td>
+                                                <td>{{ p.tanggal_mulai.strftime('%Y-%m') }} s/d {{ p.tanggal_selesai.strftime('%Y-%m') if p.tanggal_selesai else 'SEKARANG' }}</td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="btn-action edit-pengalaman-btn"
+                                                                data-id="{{ p.id }}"
+                                                                data-perusahaan="{{ p.perusahaan }}"
+                                                                data-posisi="{{ p.posisi }}"
+                                                                data-mulai="{{ p.tanggal_mulai.strftime('%Y-%m-%d') }}"
+                                                                data-selesai="{{ p.tanggal_selesai.strftime('%Y-%m-%d') if p.tanggal_selesai else '' }}"
+                                                                data-deskripsi="{{ p.deskripsi }}">EDIT</button>
+                                                        <form method="POST" action="{{ url_for('admin.delete_pengalaman', id=p.id) }}" style="display:inline;" onsubmit="return confirm('Hapus riwayat ini?')">
+                                                            <button type="submit" class="btn-action btn-delete">HAPUS</button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center">// DATA KOSONG</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-proyek" class="tab-content {% if active_tab == 'proyek' %}active{% endif %}">
+                <div class="tab-header">
+                    <h2 class="tab-title">KONTRAK PROYEK</h2>
+                    <p class="tab-subtitle">Kelola portofolio karya & proyek pembangunan aplikasi</p>
+                </div>
+                
+                <div class="grid-admin-two">
+                    <div class="admin-card">
+                        <h3 class="card-title">// DOCKING PROYEK BARU</h3>
+                        <form method="POST" action="{{ url_for('admin.add_proyek') }}" enctype="multipart/form-data" class="eric-form">
+                            <div class="form-group">
+                                <label for="judul">JUDUL PROYEK</label>
+                                <input type="text" id="judul" name="judul" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="teknologi">TEKNOLOGI (PISAHKAN DENGAN KOMA)</label>
+                                <input type="text" id="teknologi" name="teknologi" placeholder="Contoh: Flask, TiDB, React">
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label for="link_proyek">LIVE PREVIEW URL</label>
+                                    <input type="url" id="link_proyek" name="link_proyek">
+                                </div>
+                                <div class="form-group">
+                                    <label for="link_github">GITHUB REPO URL</label>
+                                    <input type="url" id="link_github" name="link_github">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="deskripsi_proyek">DESKRIPSI PROYEK</label>
+                                <textarea id="deskripsi_proyek" name="deskripsi" rows="3" required></textarea>
+                            </div>
+                            <div class="form-group file-upload-group">
+                                <label for="foto_proyek">SCREENSHOT PROYEK (UPLOAD CLOUDINARY)</label>
+                                <input type="file" id="foto_proyek" name="foto" accept="image/*">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sharp">UNGGAH PROYEK</button>
+                        </form>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <h3 class="card-title">// DAFTAR KONTRAK PROYEK</h3>
+                        <div class="table-container">
+                            <table class="val-table">
+                                <thead>
+                                    <tr>
+                                        <th>JUDUL</th>
+                                        <th>TEKNOLOGI</th>
+                                        <th>GAMBAR</th>
+                                        <th>AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if proyek %}
+                                        {% for pr in proyek %}
+                                            <tr>
+                                                <td class="bold-text">{{ pr.judul }}</td>
+                                                <td>
+                                                    {% if pr.teknologi %}
+                                                        {{ pr.teknologi }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if pr.foto_url %}
+                                                        <a href="{{ pr.foto_url }}" target="_blank" class="text-red">Preview</a>
+                                                    {% else %}
+                                                        Tidak ada
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="btn-action edit-proyek-btn"
+                                                                data-id="{{ pr.id }}"
+                                                                data-judul="{{ pr.judul }}"
+                                                                data-teknologi="{{ pr.teknologi or '' }}"
+                                                                data-linkproyek="{{ pr.link_proyek or '' }}"
+                                                                data-linkgithub="{{ pr.link_github or '' }}"
+                                                                data-deskripsi="{{ pr.deskripsi }}">EDIT</button>
+                                                        <form method="POST" action="{{ url_for('admin.delete_proyek', id=pr.id) }}" style="display:inline;" onsubmit="return confirm('Hapus proyek ini?')">
+                                                            <button type="submit" class="btn-action btn-delete">HAPUS</button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center">// DATA KOSONG</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-pesan" class="tab-content {% if active_tab == 'pesan' %}active{% endif %}">
+                <div class="tab-header">
+                    <h2 class="tab-title">TRANSMISI PESAN MASUK</h2>
+                    <p class="tab-subtitle">Kumpulan pesan formulir kontak dari publik</p>
+                </div>
+                
+                <div class="admin-card">
+                    {% if pesan %}
+                        <div class="inbox-list">
+                            {% for p in pesan %}
+                                <div class="inbox-item">
+                                    <div class="inbox-item-header">
+                                        <div class="sender-info">
+                                            <span class="sender-name">{{ p.nama }}</span>
+                                            <span class="sender-email">&lt;{{ p.email }}&gt;</span>
+                                        </div>
+                                        <span class="inbox-date">{{ p.tanggal_kirim.strftime('%Y-%m-%d %H:%M') }}</span>
+                                    </div>
+                                    <div class="inbox-item-subject">// SUBJEK: {{ p.subjek }}</div>
+                                    <div class="inbox-item-body">
+                                        <p>{{ p.pesan }}</p>
+                                    </div>
+                                    <div class="inbox-item-footer">
+                                        <form method="POST" action="{{ url_for('admin.delete_pesan', id=p.id) }}" onsubmit="return confirm('Hapus pesan dari {{ p.nama }}?')">
+                                            <button type="submit" class="btn-action btn-delete">HAPUS TRANSMISI</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="no-data-msg">
+                            <p>// KOTAK MASUK KOSONG. BELUM ADA TRANSMISI PESAN.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div id="modal-skill" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h3 class="modal-title">// PERBARUI KEAHLIAN</h3>
+            <form id="form-edit-skill" method="POST" action="" class="eric-form">
+                <div class="form-group">
+                    <label for="edit_nama_skill">NAMA KEAHLIAN</label>
+                    <input type="text" id="edit_nama_skill" name="nama_skill" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_kategori">KATEGORI</label>
+                    <select id="edit_kategori" name="kategori" required class="val-select">
+                        <option value="Frontend">Frontend</option>
+                        <option value="Backend">Backend</option>
+                        <option value="Tools">Tools / DevOps</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit_persentase">PENGUASAAN (%)</label>
+                    <input type="number" id="edit_persentase" name="persentase" min="0" max="100" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sharp">SIMPAN PERUBAHAN</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-pengalaman" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h3 class="modal-title">// PERBARUI RIWAYAT MISI</h3>
+            <form id="form-edit-pengalaman" method="POST" action="" class="eric-form">
+                <div class="form-group">
+                    <label for="edit_perusahaan">PERUSAHAAN</label>
+                    <input type="text" id="edit_perusahaan" name="perusahaan" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_posisi">POSISI / ROLE</label>
+                    <input type="text" id="edit_posisi" name="posisi" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="edit_tanggal_mulai">TANGGAL MULAI</label>
+                        <input type="date" id="edit_tanggal_mulai" name="tanggal_mulai" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_tanggal_selesai">TANGGAL SELESAI</label>
+                        <input type="date" id="edit_tanggal_selesai" name="tanggal_selesai">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit_deskripsi_pengalaman">DESKRIPSI TUGAS</label>
+                    <textarea id="edit_deskripsi_pengalaman" name="deskripsi" rows="4"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sharp">SIMPAN PERUBAHAN</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-proyek" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h3 class="modal-title">// PERBARUI KONTRAK PROYEK</h3>
+            <form id="form-edit-proyek" method="POST" action="" enctype="multipart/form-data" class="eric-form">
+                <div class="form-group">
+                    <label for="edit_judul">JUDUL PROYEK</label>
+                    <input type="text" id="edit_judul" name="judul" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_teknologi">TEKNOLOGI (PISAHKAN DENGAN KOMA)</label>
+                    <input type="text" id="edit_teknologi" name="teknologi">
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="edit_link_proyek">LIVE PREVIEW URL</label>
+                        <input type="url" id="edit_link_proyek" name="link_proyek">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_link_github">GITHUB REPO URL</label>
+                        <input type="url" id="edit_link_github" name="link_github">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit_deskripsi_proyek">DESKRIPSI PROYEK</label>
+                    <textarea id="edit_deskripsi_proyek" name="deskripsi" rows="3" required></textarea>
+                </div>
+                <div class="form-group file-upload-group">
+                    <label for="edit_foto_proyek">PERBARUI SCREENSHOT (OPTIONAL)</label>
+                    <input type="file" id="edit_foto_proyek" name="foto" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sharp">SIMPAN PERUBAHAN</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
